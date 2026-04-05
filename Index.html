@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام درجات إعدادية النخبة</title>
+    <style>
+        :root { --primary: #075e54; --secondary: #128c7e; --accent: #3498db; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; padding: 10px; }
+        .container { background: white; border-radius: 15px; max-width: 600px; margin: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; border-bottom: 5px solid #25d366; }
+        .step-page { padding: 20px; display: none; }
+        .active { display: block; }
+        
+        input, select, button { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; color: #2c3e50; }
+        
+        .btn-next { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-save { background: #f39c12; color: white; border: none; font-weight: bold; }
+        .btn-whatsapp { background: #25d366; color: white; border: none; font-weight: bold; font-size: 18px; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
+        th { background: #f8f9fa; color: var(--primary); }
+        .grade-box { width: 60px; text-align: center; border: 2px solid var(--accent); font-weight: bold; color: #e67e22; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 style="margin:0;">إعدادية النخبة المهنية الأهلية</h2>
+        <p style="margin:5px 0 0; font-size:13px;">نظام إدارة وتدقيق درجات الطلبة</p>
+    </div>
+
+    <div id="step1" class="step-page active">
+        <label>اسم المدرس:</label>
+        <input type="text" id="teacherName" placeholder="أدخل اسمك الكامل">
+        
+        <label>المادة الدراسية:</label>
+        <select id="subjectName">
+            <option>التربية الإسلامية</option><option>اللغة العربية</option><option>اللغة الإنكليزية</option>
+            <option>الرياضيات</option><option>الطبيعيات</option><option>تطبيقات الحاسوب</option>
+            <option>التربية الرياضية</option><option>التدريب العملي</option><option>العلوم الصناعية</option>
+            <option>مبادئ الاتصالات والشبكات</option><option>المبادئ الأساسية للحاسوب</option>
+            <option>تجميع الحاسوب</option><option>الرسم الصناعي</option>
+        </select>
+        <button class="btn-next" onclick="goToStep(2)">التالي ➔</button>
+    </div>
+
+    <div id="step2" class="step-page">
+        <label>الفصل الدراسي:</label>
+        <select id="semester"><option>الأول</option><option>الثاني</option></select>
+        <label>الشهر:</label>
+        <select id="month"><option>الأول</option><option>الثاني</option></select>
+        <label>اختر الشعبة:</label>
+        <select id="className">
+            <option value="">-- اختر الشعبة --</option>
+            <option>أمن سيبراني - أ</option><option>أمن سيبراني - ب</option><option>أمن سيبراني - ج</option>
+            <option>تكرير النفط - أ</option><option>تكرير النفط - ب</option><option>الاول نفط - ج</option>
+            <option>الاول نفط - د</option><option>الاول نفط - هـ</option><option>الاول نفط - و</option>
+        </select>
+        <button class="btn-next" onclick="startGrading()">فتح القائمة ➔</button>
+        <button onclick="goToStep(1)" style="background:#95a5a6; color:white; border:none;">رجوع</button>
+    </div>
+
+    <div id="step3" class="step-page">
+        <h4 id="infoSummary" style="text-align:center; color:var(--primary);"></h4>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr><th>ت</th><th>الاسم</th><th>الدرجة (100)</th></tr></thead>
+                <tbody id="studentRows"></tbody>
+            </table>
+        </div>
+        <div style="margin-top:20px;">
+            <button class="btn-save" onclick="saveLocal()">💾 حفظ محلي</button>
+            <button class="btn-whatsapp" onclick="sendWhatsApp()">📲 إرسال للواتساب</button>
+            <button onclick="goToStep(2)" style="background:#95a5a6; color:white; border:none; margin-top:10px;">رجوع</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const studentsDB = {
+        "أمن سيبراني - أ": ["أحمد ماجد كامل", "أمير باسم محمد", "جعفر سلام محمد", "حسن حسين صليبي", "حسن سعد محمد", "حسن عدي حسن", "حسين عامر كامل", "حسين علي عبد الحسين", "حسين عمار ريسان", "حسين كريم حمزة", "حسين محمد ناظم", "حيدر مشعل حسين وناس", "رضا حسنين علي", "زين العابدين ناجح سلمان", "سجاد عبادي مشكور", "سجاد كرار علي", "ضرغام كريم شعيل", "علي حيدر علي", "علي عمران محمد", "علي لكطان زعل", "كرار حيدر نوري", "كرار مصطفى كدر", "محمد عبد الحسن كامل جابر", "محمد عبد علي والي", "محمد عدنان سجين", "محمد فراس عباس", "مرتجى خالد نعيم", "مصطفى سامي شاكر", "وائل عباس سلمان"],
+        "أمن سيبراني - ب": ["حنين راسم مجلي", "اسراء صالح سهر", "ريتاج رائد حسن", "فاطمة الزهراء رعد محمد", "فرح جاسم محمد"],
+        "أمن سيبراني - ج": ["احمد فلاح عبد الحسين", "الوسمي صالح صوفي", "باقر سجاد جبار", "جعفر حبيب مانع", "جعفر علي عبد مسلم", "حسن محمود طالب", "حسين علي طالب", "حسين فاضل عباس", "حيدر عيد علي", "زين العابدين حسين غناوي", "سجاد حسين عبد نور", "سعد رفعت كاظم", "عباس جاسم جليل", "عباس قاسم وحيد", "علي احمد عبد جياد", "علي باسم هلاسة", "علي محمد إياد", "عيسى عبدالله باقر", "غياث مشير جعفر", "قاسم مثنى عبد الهادي", "محسن عبد الرضا محسن", "محمد رضا حسن محل", "مسلم ميثاق راتب", "مصطفى احمد اسماعيل", "مصطفى حمود كاظم", "مصطفى قيس عيسى", "مصطفى محمد جبار", "منتظر حمزة عبد الكاظم", "مؤمل محمد كامل", "ميثم عمار علي", "هادي محمد فيصل", "ياسر محمد ياسر"],
+        "تكرير النفط - أ": ["ادم حكيم فليح جاسم", "أمير ميثم إبراهيم", "جعفر رائد حسين", "حسين رائد جهاد", "حسين رحيم كشيش", "حسين عقيل حسين", "حسين عمار عباس", "حسين نبيل عودة", "حيدر بلاسم كاظم", "سلمان علي حمدان", "عباس فرحان كاظم", "كرار قصي محمد", "محمد حسين فيصل", "مرتجى ميثم حمودي", "مصطفى شاكر محمود", "منتظر مطر مسلم", "موسى علي خلف", "مؤمل حسن علي", "ناصر بديري حسن", "ياسر عامر حسين"],
+        "تكرير النفط - ب": ["بان محمد عبيد", "بنين جعفر طحيور", "بنين سوادي مظلوم", "رقية كرار كاظم", "زهراء راضي ناصر", "زهراء علي حميد", "زهراء محمد فاهم", "زهراء منذر كاظم", "زينب محمد عبد", "غدير فراس كريم", "فاطمة باسم حسون", "فاطمة ميثاق ستار", "فرح نعيمة غافل", "ملاك بهاء الدين عزيز", "ملاك عقيل محمد", "نرجس حسن هلال", "نهلة حسن علي", "طيبة فاضل عباس"],
+        "الاول نفط - ج": ["أحمد حسام سالم خيون", "جاسم رزاق حربي", "جعفر حازم عباس", "حسن ذياب محمد", "حسين عدي حسن", "حيدر أحمد عذاب", "حيدر فراس عباس", "رامي محمد عبد النبي", "سجاد طارق صالح", "سجاد علي حسين خريبط", "عباس فاضل مطرود", "علي حسين رزاق", "علي عبد الحسين حميدي", "علي مصطفى لعيوس", "عون جابر مطشر", "محمد جاسم محمد", "محمد حيدر جبار", "محمد قاسم fالح", "مصطفى حسن طريخم", "مصطفى علي رحيم", "مصطفى محسن علي"],
+        "الاول نفط - د": ["ابراهيم علي دخان", "احمد عائد كاظم", "احمد علي حمودي", "احمد علي رشيد", "امير حسين غافل", "جاسم محمد طالب", "حسين اسعد ساجت", "حسين علاوي محمد", "حسين غازي علي", "رضا اوراس طالب", "رضا سلمان فلغوض", "سجاد شاكر محمود", "صادق محمد طاهر", "صلاح ناجي مطلك", "عباس جميل عبد الحمزة", "عباس حسن عباس", "عباس حسين كريم", "عباس سامي سلوت", "عباس عدنان بشان", "عباس علي جياد", "علي سعد كريم", "علي نبيل مهدي", "كرار علي جعفر", "كرار عمار صبحي", "محمد صادق مهند تكليف", "مصطفى فواز قاسم", "مؤمل علي عبد الحسين حدران", "ناصر علي عبد الخضر", "همام مثنى قاسم", "ياسر عمار ياسر"],
+        "الاول نفط - هـ": ["احمد حسين تالي", "احمد عباس دودم ساجت", "اسعد حيدر سعد", "امير احمد رسول", "جعفر مؤيد صادق", "حسن عامر علاوي", "حسين شاكر مطر", "حسين عباس عبد الامير", "حسين عبد الرحمن كاظم", "حسين محمد عبد الحسين", "ذو الفقار حسام نايف", "رسول محمد عبد الحمزة", "رضا حسين ذجر", "سجاد حسين محسن", "سجاد عادل هويدي", "عباس حبيب مهدي", "عقيل مسلم عبد الحسين", "علي جبار كاظم", "علي حسين عبد نور", "علي حيدر طالب", "علي وعد حسوني", "فاخر حسين علي", "مجتبى احمد ابراهيم", "محمد حسين ناهض", "محمد سامر علي", "مصطفى ياس خضير", "مؤمل سلام صاحب"],
+        "الاول نفط - و": ["اية علي طارق ارزوقي", "بنين دخيل ضيف الله", "بنين سلام عبد الكاظم", "بنين هلال مجيد رحوم", "حوراء علي حامد", "رغد عبد الامير ابو الهيل", "رقية حيدر عباس", "رقية شاكر دفان", "رقية فليح خلف", "زهراء احمد شلاكة", "زهراء امجد عباس", "زهراء حافظ كاظم", "زهراء حسن علي", "زهراء فليح جاسم", "سحر باسم محمد", "طيبة احمد ارحيم", "طيبة عزيز شريده جاسم", "طيف فيصل باشي", "علياء حمود كصير", "فاطمة حيدر محمد", "فاطمة علي حربي", "فاطمة علي عبد الوهاب", "فاطمة غانم غازي", "فاطمة محمد خضر", "فاطمة مهند عباس", "مريم ثائر عبد حميدي", "مريم حسن نوري", "نور علي شاكر"]
+    };
+
+    function goToStep(s) {
+        document.querySelectorAll('.step-page').forEach(p => p.classList.remove('active'));
+        document.getElementById('step' + s).classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    function startGrading() {
+        const tName = document.getElementById('teacherName').value;
+        const cls = document.getElementById('className').value;
+        if(!tName || !cls) { alert("يرجى إكمال البيانات"); return; }
+        document.getElementById('infoSummary').innerText = `${document.getElementById('subjectName').value} - ${cls}`;
+        const tbody = document.getElementById('studentRows');
+        tbody.innerHTML = "";
+        studentsDB[cls].forEach((name, i) => {
+            tbody.innerHTML += `<tr><td>${i+1}</td><td>${name}</td><td><input type="number" class="st-grade" data-name="${name}" oninput="validateGrade(this)" placeholder="0"></td></tr>`;
+        });
+        goToStep(3);
+    }
+
+    // الدالة المسؤولة عن منع الدرجات فوق 100
+    function validateGrade(input) {
+        if (input.value > 100) {
+            alert("خطأ: الدرجة لا يمكن أن تتجاوز 100");
+            input.value = 100;
+        }
+        if (input.value < 0) input.value = 0;
+    }
+
+    function saveLocal() {
+        const data = Array.from(document.querySelectorAll('.st-grade')).map(i => ({n: i.dataset.name, g: i.value}));
+        localStorage.setItem('nukhba_grades', JSON.stringify(data));
+        alert("تم الحفظ بنجاح.");
+    }
+
+    function sendWhatsApp() {
+        let msg = `*نتائج إعدادية النخبة المهنية*%0A*المدرس:* ${document.getElementById('teacherName').value}%0A*المادة:* ${document.getElementById('subjectName').value}%0A*الشعبة:* ${document.getElementById('className').value}%0A*الفترة:* فصل ${document.getElementById('semester').value} / شهر ${document.getElementById('month').value}%0A--------------------------%0A`;
+        let pass = 0, total = 0;
+        document.querySelectorAll('.st-grade').forEach((input, index) => {
+            let g = parseInt(input.value) || 0;
+            if(g > 100) g = 100; // تأمين إضافي عند الإرسال
+            if(g >= 50) pass++;
+            total++;
+            msg += `${index+1}- ${input.dataset.name}: [ *${g}* ]%0A`;
+        });
+        let rate = ((pass / total) * 100).toFixed(1);
+        msg += `--------------------------%0A*نسبة النجاح:* %25${rate}`;
+        window.open(`https://wa.me/9647882049639?text=${msg}`, '_blank');
+    }
+</script>
+</body>
+</html>
