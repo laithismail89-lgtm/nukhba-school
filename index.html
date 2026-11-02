@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -291,29 +291,7 @@ function decodeBase64UTF8(base64Str) {
     }
 }
 
-// دالة تحويل الرقم إلى كتابة بالحروف العربية
-function numberToWords(num) {
-    let n = parseInt(num);
-    if (isNaN(n)) return num;
-    if (n === 100) return "مئة";
-    if (n === 0) return "صفر";
-    
-    const units = ["", "وواحد", "واثنان", "وثلاثة", "وأربعة", "وخستة", "وستة", "وسبعة", "وثمانية", "وتسعة"];
-    // تصحيح الألفاظ
-    const unitsList = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
-    const teens = ["عشرة", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"];
-    const tens = ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
-
-    if (n < 10) return unitsList[n];
-    if (n >= 10 && n < 20) return teens[n - 10];
-    
-    let t = Math.floor(n / 10);
-    let u = n % 10;
-    
-    if (u === 0) return tens[t];
-    return unitsList[u] و + tens[t]; // سيتم التعامل معها بشكل مبسط أدناه
-}
-
+// تحويل الرقم إلى كتابة بالحروف العربية بشكل آمن
 function convertScoreToWords(score) {
     let n = parseInt(score);
     if (isNaN(n)) return score;
@@ -335,10 +313,10 @@ function convertScoreToWords(score) {
     return unitsWords[u] + " و" + tensWords[t];
 }
 
-// استخراج اسم اليوم من التاريخ (مثل 21/10/2026)
+// استخراج اسم اليوم من التاريخ (مثل 21/10/2026 أو تنسيقات أخرى)
 function getDayNameFromDate(dateStr) {
     try {
-        let parts = dateStr.split('/');
+        let parts = String(dateStr).split('/');
         if (parts.length === 3) {
             let day = parseInt(parts[0], 10);
             let month = parseInt(parts[1], 10) - 1;
