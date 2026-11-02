@@ -7,15 +7,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #1e3a8a;
-            --secondary-color: #3b82f6;
+            --primary-color: #0f766e; /* لون أساسي جديد: تيركواز داكن أنيق */
+            --secondary-color: #14b8a6;
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
-            --bg-color: #f8fafc;
+            --bg-color: #f0fdfa; /* خلفية عامة متناسقة مع التيركواز */
             --card-bg: #ffffff;
             --text-color: #1e293b;
-            --border-color: #e2e8f0;
+            --border-color: #ccfbf1;
         }
         body {
             font-family: 'Cairo', sans-serif;
@@ -32,8 +32,9 @@
             background: var(--card-bg);
             padding: 15px;
             border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(15, 118, 110, 0.08);
             box-sizing: border-box;
+            border-top: 5px solid var(--primary-color);
         }
         @media (min-width: 768px) {
             .container {
@@ -41,7 +42,7 @@
                 padding: 30px;
                 margin: 20px auto;
                 border-radius: 16px;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                box-shadow: 0 4px 12px rgba(15, 118, 110, 0.1);
             }
         }
         h2 {
@@ -51,12 +52,12 @@
             margin-bottom: 5px;
         }
         .welcome-box {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
+            background: #f0fdf4; /* لون مختلف للواجهة الأساسية/الترحيب (أخضر هادئ) */
+            border: 1px solid #bbf7d0;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
-            color: #1e40af;
+            color: #166534;
             line-height: 1.5;
             font-size: 13px;
             text-align: center;
@@ -115,13 +116,31 @@
             display: none;
         }
         .student-info {
-            background: #f1f5f9;
+            background: #fdf4ff; /* لون مختلف لبطاقة معلومات الطالب */
+            border: 1px solid #f5d0fe;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 15px;
-            line-height: 1.6;
+            line-height: 1.8;
             font-size: 13px;
         }
+        
+        /* اسم الطالب بلون متموج جذاب ومتسابق */
+        .wavy-name {
+            font-weight: 700;
+            font-size: 16px;
+            background: linear-gradient(45deg, #7c3aed, #db2777, #2563eb, #0d9488);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            animation: waveGlow 4s ease infinite;
+        }
+        @keyframes waveGlow {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(45deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
+
         .tabs {
             display: flex;
             border-bottom: 2px solid var(--border-color);
@@ -173,10 +192,25 @@
             padding: 8px 6px;
             text-align: center;
         }
-        th {
-            background-color: var(--primary-color);
+
+        /* لون مختلف لجدول ورأس الدرجات (أزرق ملكي هادئ) */
+        #gradesTab th {
+            background-color: #1d4ed8;
             color: white;
         }
+        #gradesTab td {
+            background-color: #eff6ff;
+        }
+
+        /* لون مختلف لجدول ورأس الغيابات (برتقالي / عسلي هادئ) */
+        #attendanceTab th {
+            background-color: #c2410c;
+            color: white;
+        }
+        #attendanceTab td {
+            background-color: #fff7ed;
+        }
+
         .excellence-badge {
             background-color: #d1fae5;
             color: #065f46;
@@ -250,7 +284,6 @@
                             <th>الفترة</th>
                             <th>الشهر</th>
                             <th>الدرجة</th>
-                            <th>الدرجة كتابةً</th>
                             <th>التاريخ</th>
                         </tr>
                     </thead>
@@ -266,7 +299,6 @@
                     <thead>
                         <tr>
                             <th>ت</th>
-                            <th>اليوم</th>
                             <th>التاريخ</th>
                             <th>الحالة</th>
                         </tr>
@@ -289,44 +321,6 @@ function decodeBase64UTF8(base64Str) {
     } catch (e) {
         return decodeURIComponent(escape(atob(base64Str)));
     }
-}
-
-// تحويل الرقم إلى كتابة بالحروف العربية بشكل آمن
-function convertScoreToWords(score) {
-    let n = parseInt(score);
-    if (isNaN(n)) return score;
-    if (n === 100) return "مئة درجة";
-    if (n < 10) {
-        const ones = ["صفر", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
-        return ones[n];
-    }
-    if (n >= 10 && n < 20) {
-        const teens = ["عشرة", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر", "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"];
-        return teens[n - 10];
-    }
-    let t = Math.floor(n / 10);
-    let u = n % 10;
-    const tensWords = ["", "", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
-    const unitsWords = ["", "وواحد", "واثنان", "وثلاثة", "وأربعة", "وخمسة", "وستة", "وسبعة", "وثمانية", "وتسعة"];
-    
-    if (u === 0) return tensWords[t];
-    return unitsWords[u] + " و" + tensWords[t];
-}
-
-// استخراج اسم اليوم من التاريخ (مثل 21/10/2026 أو تنسيقات أخرى)
-function getDayNameFromDate(dateStr) {
-    try {
-        let parts = String(dateStr).split('/');
-        if (parts.length === 3) {
-            let day = parseInt(parts[0], 10);
-            let month = parseInt(parts[1], 10) - 1;
-            let year = parseInt(parts[2], 10);
-            let d = new Date(year, month, day);
-            let daysNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-            return daysNames[d.getDay()] || "-";
-        }
-    } catch(e) {}
-    return "-";
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -388,7 +382,7 @@ async function fetchStudentData(isAuto = false) {
         const student = JSON.parse(decryptedString);
 
         let profileHtml = `
-            <strong>اسم الطالب:</strong> ${student.profile.name || 'غير محدد'}<br>
+            <strong>اسم الطالب:</strong> <span class="wavy-name">${student.profile.name || 'غير محدد'}</span><br>
             <strong>المرحلة:</strong> ${student.profile.stage || ''} | <strong>القسم:</strong> ${student.profile.dept || ''} | <strong>الشعبة:</strong> ${student.profile.group || ''}<br>
             <strong>الرمز المدرسي:</strong> ${student.profile.schoolCode || ''} | <strong>كود الطالب:</strong> ${code}
         `;
@@ -403,19 +397,17 @@ async function fetchStudentData(isAuto = false) {
             student.grades.forEach(g => {
                 let scoreVal = parseFloat(g.score) || 0;
                 if (scoreVal >= 90) hasExcellence = true;
-                let scoreInWords = convertScoreToWords(g.score);
                 
                 gradesTbody.innerHTML += `<tr>
                     <td>${g.subject || '-'}</td>
                     <td>${g.period || '-'}</td>
                     <td>${g.month || '-'}</td>
                     <td><b>${g.score || '-'}</b></td>
-                    <td><b>${scoreInWords}</b></td>
                     <td>${g.date || '-'}</td>
                 </tr>`;
             });
         } else {
-            gradesTbody.innerHTML = `<tr><td colspan="6">لا توجد درجات مسجلة حالياً</td></tr>`;
+            gradesTbody.innerHTML = `<tr><td colspan="5">لا توجد درجات مسجلة حالياً</td></tr>`;
         }
 
         const excellenceContainer = document.getElementById('excellenceContainer');
@@ -433,16 +425,14 @@ async function fetchStudentData(isAuto = false) {
         if (student.attendance && student.attendance.length > 0) {
             student.attendance.forEach((a, index) => {
                 absenceCount++;
-                let calculatedDay = getDayNameFromDate(a.date);
                 attTbody.innerHTML += `<tr>
                     <td>${index + 1}</td>
-                    <td>${calculatedDay}</td>
                     <td>${a.date || '-'}</td>
                     <td>${a.status || 'غائب'}</td>
                 </tr>`;
             });
         } else {
-            attTbody.innerHTML = `<tr><td colspan="4">سجل الحضور ممتاز، لا توجد غيابات مسجلة</td></tr>`;
+            attTbody.innerHTML = `<tr><td colspan="3">سجل الحضور ممتاز، لا توجد غيابات مسجلة</td></tr>`;
         }
 
         document.getElementById('attendanceSummary').innerText = `مجموع أيام الغياب: ${absenceCount} يوم`;
