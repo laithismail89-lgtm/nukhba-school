@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعدادية النخبة المهنية الأهلية - بوابة استعلام الطلاب</title>
+    <title>إعدادية النخبة المهنية الأهلية - بوابة ولي الأمر</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #1e3a8a;
             --secondary-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -23,8 +26,8 @@
             direction: rtl;
         }
         .container {
-            max-width: 650px;
-            margin: 30px auto;
+            max-width: 700px;
+            margin: 20px auto;
             background: var(--card-bg);
             padding: 30px;
             border-radius: 16px;
@@ -35,11 +38,16 @@
             color: var(--primary-color);
             margin-bottom: 5px;
         }
-        .subtitle {
-            text-align: center;
-            color: #64748b;
-            font-size: 14px;
+        .welcome-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 15px 20px;
+            border-radius: 10px;
             margin-bottom: 25px;
+            color: #1e40af;
+            line-height: 1.6;
+            font-size: 15px;
+            text-align: center;
         }
         .form-group {
             margin-bottom: 20px;
@@ -63,8 +71,12 @@
             border-color: var(--secondary-color);
             outline: none;
         }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
         button {
-            width: 100%;
+            flex: 1;
             padding: 12px;
             background-color: var(--primary-color);
             color: white;
@@ -79,7 +91,13 @@
         button:hover {
             background-color: var(--secondary-color);
         }
-        .result-box {
+        .btn-secondary {
+            background-color: #64748b;
+        }
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+        .result-section {
             margin-top: 30px;
             display: none;
         }
@@ -91,12 +109,35 @@
             line-height: 1.8;
             font-size: 15px;
         }
-        h3 {
-            font-size: 17px;
-            color: var(--primary-color);
-            margin-top: 25px;
+        /* تبويبات التنقل */
+        .tabs {
+            display: flex;
             border-bottom: 2px solid var(--border-color);
-            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            font-family: 'Cairo', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: none;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
         table {
             width: 100%;
@@ -113,8 +154,29 @@
             background-color: var(--primary-color);
             color: white;
         }
+        .excellence-badge {
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            border: 1px solid #6ee7b7;
+        }
+        .alert-box {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .alert-1 { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .alert-2 { background-color: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+        .alert-3 { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        
         .error-msg {
-            color: #dc2626;
+            color: var(--danger-color);
             text-align: center;
             margin-top: 15px;
             font-weight: 600;
@@ -125,79 +187,130 @@
 
 <div class="container">
     <h2>إعدادية النخبة المهنية الأهلية</h2>
-    <div class="subtitle">بوابة استعلام نتائج الطلاب والغيابات الآمنة</div>
+    
+    <!-- رسالة الترحيب المنسقة -->
+    <div class="welcome-box">
+        <strong>أهلاً بك عزيزي ولي الأمر في واجهة ولي الأمر</strong><br>
+        هنا يمكنك الاطلاع على آخر درجات ابنك وغياباته فور توفرها.
+    </div>
     
     <div class="form-group">
-        <label for="studentCode">أدخل كود الطالب الخاص:</label>
+        <label for="studentCode">أدخل الكود الخاص بأبنك:</label>
         <input type="text" id="studentCode" placeholder="مثال: ST80841765" autocomplete="off">
     </div>
     
-    <button onclick="fetchStudentData()">عرض النتيجة والبيانات</button>
+    <div class="btn-group">
+        <button onclick="fetchStudentData(false)">عرض البيانات</button>
+        <button onclick="clearSavedData()" class="btn-secondary" title="مسح الكود المخزن لتغيير الطالب">مسح الكود المحفوظ</button>
+    </div>
     
     <div id="errorMsg" class="error-msg"></div>
 
-    <div id="resultBox" class="result-box">
+    <div id="resultSection" class="result-section">
         <div class="student-info" id="studentProfile">
-            <!-- معلومات الطالب الأساسية -->
+            <!-- معلومات الطالب -->
         </div>
 
-        <h3>الدرجات الامتحانية</h3>
-        <div style="overflow-x: auto;">
-            <table id="gradesTable">
-                <thead>
-                    <tr>
-                        <th>المادة</th>
-                        <th>الفترة</th>
-                        <th>الشهر</th>
-                        <th>الدرجة</th>
-                        <th>المدرس</th>
-                        <th>التاريخ</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <!-- التبويبات -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('grades')">الدرجات</button>
+            <button class="tab-btn" onclick="switchTab('attendance')">الغيابات</button>
         </div>
 
-        <h3>سجل الحضور والغياب</h3>
-        <div style="overflow-x: auto;">
-            <table id="attendanceTable">
-                <thead>
-                    <tr>
-                        <th>المادة</th>
-                        <th>الحالة</th>
-                        <th>المدرس</th>
-                        <th>التاريخ</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <!-- تبويب الدرجات -->
+        <div id="gradesTab" class="tab-content active">
+            <div id="excellenceContainer"></div>
+            <div style="overflow-x: auto;">
+                <table id="gradesTable">
+                    <thead>
+                        <tr>
+                            <th>المادة</th>
+                            <th>الفترة</th>
+                            <th>الشهر</th>
+                            <th>الدرجة</th>
+                            <th>المدرس</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- تبويب الغيابات -->
+        <div id="attendanceTab" class="tab-content">
+            <div style="overflow-x: auto;">
+                <table id="attendanceTable">
+                    <thead>
+                        <tr>
+                            <th>ت</th>
+                            <th>اليوم</th>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="attendanceSummary" style="margin-top: 15px; font-weight: bold; text-align: center;"></div>
+            <div id="attendanceAlert"></div>
         </div>
     </div>
 </div>
 
 <script>
-// دالة فك التشفير الداعمة للغة العربية (UTF-8 Base64)
+// دالة فك التشفير الداعمة للغة العربية
 function decodeBase64UTF8(base64Str) {
     try {
         const binString = atob(base64Str);
         const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
         return new TextDecoder().decode(bytes);
     } catch (e) {
-        // فك شفرة احتياطي إذا كان النص عادياً
         return decodeURIComponent(escape(atob(base64Str)));
     }
 }
 
-async function fetchStudentData() {
+// التحقق من ذاكرة الهاتف عند فتح الصفحة لأول مرة
+window.addEventListener('DOMContentLoaded', () => {
+    const savedCode = localStorage.getItem('nukhba_student_code');
+    if (savedCode) {
+        document.getElementById('studentCode').value = savedCode;
+        fetchStudentData(true); // جلب البيانات تلقائياً
+    }
+});
+
+// تبديل التبويبات
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+    if (tabName === 'grades') {
+        document.querySelector('.tabs button:nth-child(1)').classList.add('active');
+        document.getElementById('gradesTab').classList.add('active');
+    } else {
+        document.querySelector('.tabs button:nth-child(2)').classList.add('active');
+        document.getElementById('attendanceTab').classList.add('active');
+    }
+}
+
+// مسح الكود المخزن
+function clearSavedData() {
+    localStorage.removeItem('nukhba_student_code');
+    document.getElementById('studentCode').value = '';
+    document.getElementById('resultSection').style.display = 'none';
+    document.getElementById('errorMsg').innerText = "تم مسح الكود المخزن بنجاح.";
+}
+
+async function fetchStudentData(isAuto = false) {
     const code = document.getElementById('studentCode').value.trim();
     const errorMsg = document.getElementById('errorMsg');
-    const resultBox = document.getElementById('resultBox');
+    const resultSection = document.getElementById('resultSection');
     
     errorMsg.innerText = "";
-    resultBox.style.display = "none";
+    resultSection.style.display = "none";
 
     if (!code) {
-        errorMsg.innerText = "الرجاء إدخال كود الطالب الخاص بشكل صحيح.";
+        if (!isAuto) errorMsg.innerText = "الرجاء إدخال كود الطالب الخاص.";
         return;
     }
 
@@ -208,50 +321,96 @@ async function fetchStudentData() {
         const data = await response.json();
 
         if (!data[code]) {
-            errorMsg.innerText = "كود الطالب غير صحيح أو غير موجود في النظام.";
+            if (!isAuto) errorMsg.innerText = "كود الطالب غير صحيح أو غير موجود في النظام.";
             return;
         }
 
-        // فك التشفير مع دعم الحروف العربية
+        // حفظ الكود في ذاكرة الهاتف
+        localStorage.setItem('nukhba_student_code', code);
+
         const encryptedPayload = data[code];
         const decryptedString = decodeBase64UTF8(encryptedPayload);
         const student = JSON.parse(decryptedString);
 
-        // تعبئة البيانات الشخصية
+        // معلومات الطالب الأساسية (مع ضمان الاعتماد على الرمز المدرسي وكود الطالب)
         let profileHtml = `
             <strong>اسم الطالب:</strong> ${student.profile.name || 'غير محدد'}<br>
             <strong>المرحلة:</strong> ${student.profile.stage || ''} | <strong>القسم:</strong> ${student.profile.dept || ''} | <strong>الشعبة:</strong> ${student.profile.group || ''}<br>
-            <strong>الرمز المدرسي:</strong> ${student.profile.schoolCode || ''} | <strong>رقم القيد:</strong> ${student.profile.registerNo || ''}
+            <strong>الرمز المدرسي:</strong> ${student.profile.schoolCode || ''} | <strong>كود الطالب:</strong> ${code}
         `;
         document.getElementById('studentProfile').innerHTML = profileHtml;
 
-        // تعبئة جدول الدرجات
+        // --- معالجة جدول الدرجات ---
         const gradesTbody = document.querySelector('#gradesTable tbody');
         gradesTbody.innerHTML = "";
+        let hasExcellence = false;
+
         if (student.grades && student.grades.length > 0) {
             student.grades.forEach(g => {
-                gradesTbody.innerHTML += `<tr><td>${g.subject || '-'}</td><td>${g.period || '-'}</td><td>${g.month || '-'}</td><td><b>${g.score || '-'}</b></td><td>${g.teacher || '-'}</td><td>${g.date || '-'}</td></tr>`;
+                let scoreVal = parseFloat(g.score) || 0;
+                if (scoreVal >= 90) hasExcellence = true;
+                
+                gradesTbody.innerHTML += `<tr>
+                    <td>${g.subject || '-'}</td>
+                    <td>${g.period || '-'}</td>
+                    <td>${g.month || '-'}</td>
+                    <td><b>${g.score || '-'}</b></td>
+                    <td>${g.teacher || '-'}</td>
+                    <td>${g.date || '-'}</td>
+                </tr>`;
             });
         } else {
             gradesTbody.innerHTML = `<tr><td colspan="6">لا توجد درجات مسجلة حالياً</td></tr>`;
         }
 
-        // تعبئة جدول الغيابات
+        // رسالة التميز إذا كانت الدرجة فوق 90
+        const excellenceContainer = document.getElementById('excellenceContainer');
+        if (hasExcellence) {
+            excellenceContainer.innerHTML = `<div class="excellence-badge">🌟 نشكرك على تميز ابنك!</div>`;
+        } else {
+            excellenceContainer.innerHTML = "";
+        }
+
+        // --- معالجة جدول الغيابات ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
+        let absenceCount = 0;
+
         if (student.attendance && student.attendance.length > 0) {
-            student.attendance.forEach(a => {
-                attTbody.innerHTML += `<tr><td>${a.subject || '-'}</td><td>${a.status || '-'}</td><td>${a.teacher || '-'}</td><td>${a.date || '-'}</td></tr>`;
+            // تصفية الغيابات وحساب العدد
+            student.attendance.forEach((a, index) => {
+                absenceCount++;
+                // استخراج اليوم من التاريخ أو عرضه
+                let dayName = a.day || '-';
+                attTbody.innerHTML += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${dayName}</td>
+                    <td>${a.date || '-'}</td>
+                    <td>${a.status || 'غائب'}</td>
+                </tr>`;
             });
         } else {
             attTbody.innerHTML = `<tr><td colspan="4">سجل الحضور ممتاز، لا توجد غيابات مسجلة</td></tr>`;
         }
 
-        resultBox.style.display = "block";
+        // مجموع الغيابات والإنذارات
+        document.getElementById('attendanceSummary').innerText = `مجموع أيام الغياب: ${absenceCount} يوم`;
+        
+        const alertBox = document.getElementById('attendanceAlert');
+        alertBox.innerHTML = "";
+        if (absenceCount > 21) {
+            alertBox.innerHTML = `<div class="alert-box alert-3">⚠️ إنذار نهائي (تجاوز الغياب 21 يوماً)</div>`;
+        } else if (absenceCount > 14) {
+            alertBox.innerHTML = `<div class="alert-box alert-2">⚠️ إنذار ثاني واستدعاء ولي أمر (تجاوز الغياب 14 يوماً)</div>`;
+        } else if (absenceCount > 7) {
+            alertBox.innerHTML = `<div class="alert-box alert-1">⚠️ إنذار أولي (تجاوز الغياب 7 أيام)</div>`;
+        }
+
+        resultSection.style.display = "block";
 
     } catch (error) {
         console.error(error);
-        errorMsg.innerText = "حدث خطأ أثناء استعلام البيانات. تأكد من اتصالك بالإنترنت.";
+        if (!isAuto) errorMsg.innerText = "حدث خطأ أثناء استعلام البيانات. تأكد من اتصالك بالإنترنت.";
     }
 }
 </script>
