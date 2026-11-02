@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -7,12 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #0f766e; /* لون أساسي جديد: تيركواز داكن أنيق */
+            --primary-color: #0f766e;
             --secondary-color: #14b8a6;
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
-            --bg-color: #f0fdfa; /* خلفية عامة متناسقة مع التيركواز */
+            --bg-color: #f0fdfa;
             --card-bg: #ffffff;
             --text-color: #1e293b;
             --border-color: #ccfbf1;
@@ -52,7 +52,7 @@
             margin-bottom: 5px;
         }
         .welcome-box {
-            background: #f0fdf4; /* لون مختلف للواجهة الأساسية/الترحيب (أخضر هادئ) */
+            background: #f0fdf4;
             border: 1px solid #bbf7d0;
             padding: 12px;
             border-radius: 8px;
@@ -116,7 +116,7 @@
             display: none;
         }
         .student-info {
-            background: #fdf4ff; /* لون مختلف لبطاقة معلومات الطالب */
+            background: #fdf4ff;
             border: 1px solid #f5d0fe;
             padding: 12px;
             border-radius: 8px;
@@ -125,7 +125,6 @@
             font-size: 13px;
         }
         
-        /* اسم الطالب بلون متموج جذاب ومتسابق */
         .wavy-name {
             font-weight: 700;
             font-size: 16px;
@@ -193,7 +192,6 @@
             text-align: center;
         }
 
-        /* لون مختلف لجدول ورأس الدرجات (أزرق ملكي هادئ) */
         #gradesTab th {
             background-color: #1d4ed8;
             color: white;
@@ -202,7 +200,6 @@
             background-color: #eff6ff;
         }
 
-        /* لون مختلف لجدول ورأس الغيابات (برتقالي / عسلي هادئ) */
         #attendanceTab th {
             background-color: #c2410c;
             color: white;
@@ -282,7 +279,6 @@
                         <tr>
                             <th>المادة</th>
                             <th>الفترة</th>
-                            <th>الشهر</th>
                             <th>الدرجة</th>
                             <th>التاريخ</th>
                         </tr>
@@ -401,13 +397,12 @@ async function fetchStudentData(isAuto = false) {
                 gradesTbody.innerHTML += `<tr>
                     <td>${g.subject || '-'}</td>
                     <td>${g.period || '-'}</td>
-                    <td>${g.month || '-'}</td>
                     <td><b>${g.score || '-'}</b></td>
                     <td>${g.date || '-'}</td>
                 </tr>`;
             });
         } else {
-            gradesTbody.innerHTML = `<tr><td colspan="5">لا توجد درجات مسجلة حالياً</td></tr>`;
+            gradesTbody.innerHTML = `<tr><td colspan="4">لا توجد درجات مسجلة حالياً</td></tr>`;
         }
 
         const excellenceContainer = document.getElementById('excellenceContainer');
