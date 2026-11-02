@@ -176,6 +176,18 @@
 </div>
 
 <script>
+// دالة فك التشفير الداعمة للغة العربية (UTF-8 Base64)
+function decodeBase64UTF8(base64Str) {
+    try {
+        const binString = atob(base64Str);
+        const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0));
+        return new TextDecoder().decode(bytes);
+    } catch (e) {
+        // فك شفرة احتياطي إذا كان النص عادياً
+        return decodeURIComponent(escape(atob(base64Str)));
+    }
+}
+
 async function fetchStudentData() {
     const code = document.getElementById('studentCode').value.trim();
     const errorMsg = document.getElementById('errorMsg');
@@ -190,7 +202,6 @@ async function fetchStudentData() {
     }
 
     try {
-        // جلب ملف الـ JSON المرفوع على جيت هب مع منع التخزين المؤقت (Cache)
         const response = await fetch('students_data.json?t=' + new Date().getTime());
         if (!response.ok) throw new Error("تعذر الاتصال بقاعدة بيانات المدرسة.");
         
@@ -201,9 +212,9 @@ async function fetchStudentData() {
             return;
         }
 
-        // فك تشفير البيانات الخاصة بهذا الكود (Base64 Decode)
+        // فك التشفير مع دعم الحروف العربية
         const encryptedPayload = data[code];
-        const decryptedString = atob(encryptedPayload);
+        const decryptedString = decodeBase64UTF8(encryptedPayload);
         const student = JSON.parse(decryptedString);
 
         // تعبئة البيانات الشخصية
@@ -219,7 +230,7 @@ async function fetchStudentData() {
         gradesTbody.innerHTML = "";
         if (student.grades && student.grades.length > 0) {
             student.grades.forEach(g => {
-                gradesTbody.innerHTML += `<tr><td>${g.subject}</td><td>${g.period || '-'}</td><td>${g.month || '-'}</td><td><b>${g.score}</b></td><td>${g.teacher || '-'}</td><td>${g.date || '-'}</td></tr>`;
+                gradesTbody.innerHTML += `<tr><td>${g.subject || '-'}</td><td>${g.period || '-'}</td><td>${g.month || '-'}</td><td><b>${g.score || '-'}</b></td><td>${g.teacher || '-'}</td><td>${g.date || '-'}</td></tr>`;
             });
         } else {
             gradesTbody.innerHTML = `<tr><td colspan="6">لا توجد درجات مسجلة حالياً</td></tr>`;
@@ -230,7 +241,7 @@ async function fetchStudentData() {
         attTbody.innerHTML = "";
         if (student.attendance && student.attendance.length > 0) {
             student.attendance.forEach(a => {
-                attTbody.innerHTML += `<tr><td>${a.subject || '-'}</td><td>${a.status}</td><td>${a.teacher || '-'}</td><td>${a.date || '-'}</td></tr>`;
+                attTbody.innerHTML += `<tr><td>${a.subject || '-'}</td><td>${a.status || '-'}</td><td>${a.teacher || '-'}</td><td>${a.date || '-'}</td></tr>`;
             });
         } else {
             attTbody.innerHTML = `<tr><td colspan="4">سجل الحضور ممتاز، لا توجد غيابات مسجلة</td></tr>`;
