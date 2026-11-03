@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -442,7 +442,7 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- تصفية الغيابات والملاحظات السلوكية ---
+        // --- تصفية الغيابات والملاحظات السلوكية بدقة ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         const behTbody = document.querySelector('#behaviorTable tbody');
         attTbody.innerHTML = "";
@@ -453,18 +453,22 @@ async function fetchStudentData(isAuto = false) {
 
         if (student.attendance && student.attendance.length > 0) {
             student.attendance.forEach((a) => {
-                // التحقق مما إذا كانت ملاحظة سلوكية (بناءً على العمود السادس أو حالة السجل)
-                const isBehavior = (a.status === "ملاحظة سلوكية" || a.subject === "ملاحظة سلوكية" || (a.day && a.day.includes("ملاحظة سلوكية")));
+                // فحص دقيق للتمييز بين الغياب والملاحظة السلوكية بناءً على العمود السادس/الحالة
+                const statusStr = String(a.status || "").trim();
+                const subjectStr = String(a.subject || "").trim();
+                const dayStr = String(a.day || "").trim();
+                
+                const isBehavior = statusStr.includes("ملاحظة سلوكية") || subjectStr.includes("ملاحظة سلوكية") || dayStr.includes("ملاحظة سلوكية");
                 
                 if (isBehavior) {
                     behaviorCount++;
-                    // نص الملاحظة يتم جلبه من العمود السابع أو الحقل المتاح (مثل status أو period أو confirmation)
-                    const noteText = a.dateText || a.note || a.period || a.confirmation || a.status || "ملاحظة سلوكية";
+                    // نص الملاحظة يتم جلبه من العمود السابع (والذي تم تخزينه في period أو confirmation أو status)
+                    const noteText = a.period || a.confirmation || a.status || "ملاحظة سلوكية";
                     behTbody.innerHTML += `<tr>
                         <td>${behaviorCount}</td>
                         <td>${a.date || '-'}</td>
                         <td style="white-space: normal; text-align: right; padding: 10px;">${noteText}</td>
-                        <td>${a.teacher || a.source || 'إدارة المدرسة'}</td>
+                        <td>${a.teacher || 'إدارة المدرسة'}</td>
                     </tr>`;
                 } else {
                     absenceCount++;
