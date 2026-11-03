@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -144,14 +144,15 @@
             display: flex;
             border-bottom: 2px solid var(--border-color);
             margin-bottom: 15px;
+            gap: 4px;
         }
         .tab-btn {
             flex: 1;
-            padding: 10px;
+            padding: 10px 4px;
             background: none;
             border: none;
             font-family: 'Cairo', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             color: #64748b;
             cursor: pointer;
@@ -208,6 +209,14 @@
             background-color: #fff7ed;
         }
 
+        #behaviorTab th {
+            background-color: #7c3aed;
+            color: white;
+        }
+        #behaviorTab td {
+            background-color: #f3e8ff;
+        }
+
         .excellence-badge {
             background-color: #d1fae5;
             color: #065f46;
@@ -247,7 +256,7 @@
     
     <div class="welcome-box">
         <strong>أهلاً بك عزيزي ولي الأمر في واجهة ولي الأمر</strong><br>
-        هنا يمكنك الاطلاع على آخر درجات ابنك وغياباته فور توفرها.
+        هنا يمكنك الاطلاع على آخر درجات ابنك، غياباته، وملاحظاته السلوكية فور توفرها.
     </div>
     
     <div class="form-group">
@@ -268,6 +277,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('grades')">الدرجات</button>
             <button class="tab-btn" onclick="switchTab('attendance')">الغيابات</button>
+            <button class="tab-btn" onclick="switchTab('behavior')">السلوك</button>
         </div>
 
         <!-- تبويب الدرجات -->
@@ -305,6 +315,23 @@
             <div id="attendanceSummary" style="margin-top: 12px; font-weight: bold; text-align: center; font-size: 13px;"></div>
             <div id="attendanceAlert"></div>
         </div>
+
+        <!-- تبويب السلوك -->
+        <div id="behaviorTab" class="tab-content">
+            <div class="table-responsive">
+                <table id="behaviorTable">
+                    <thead>
+                        <tr>
+                            <th>ت</th>
+                            <th>التاريخ</th>
+                            <th>ملاحظة السلوك</th>
+                            <th>المدرس/الإداري</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -334,9 +361,12 @@ function switchTab(tabName) {
     if (tabName === 'grades') {
         document.querySelector('.tabs button:nth-child(1)').classList.add('active');
         document.getElementById('gradesTab').classList.add('active');
-    } else {
+    } else if (tabName === 'attendance') {
         document.querySelector('.tabs button:nth-child(2)').classList.add('active');
         document.getElementById('attendanceTab').classList.add('active');
+    } else if (tabName === 'behavior') {
+        document.querySelector('.tabs button:nth-child(3)').classList.add('active');
+        document.getElementById('behaviorTab').classList.add('active');
     }
 }
 
@@ -412,22 +442,47 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- الغيابات ---
+        // --- تصفية الغيابات والملاحظات السلوكية ---
         const attTbody = document.querySelector('#attendanceTable tbody');
+        const behTbody = document.querySelector('#behaviorTable tbody');
         attTbody.innerHTML = "";
+        behTbody.innerHTML = "";
+        
         let absenceCount = 0;
+        let behaviorCount = 0;
 
         if (student.attendance && student.attendance.length > 0) {
-            student.attendance.forEach((a, index) => {
-                absenceCount++;
-                attTbody.innerHTML += `<tr>
-                    <td>${index + 1}</td>
-                    <td>${a.date || '-'}</td>
-                    <td>${a.status || 'غائب'}</td>
-                </tr>`;
+            student.attendance.forEach((a) => {
+                // التحقق مما إذا كانت ملاحظة سلوكية (بناءً على العمود السادس أو حالة السجل)
+                const isBehavior = (a.status === "ملاحظة سلوكية" || a.subject === "ملاحظة سلوكية" || (a.day && a.day.includes("ملاحظة سلوكية")));
+                
+                if (isBehavior) {
+                    behaviorCount++;
+                    // نص الملاحظة يتم جلبه من العمود السابع أو الحقل المتاح (مثل status أو period أو confirmation)
+                    const noteText = a.dateText || a.note || a.period || a.confirmation || a.status || "ملاحظة سلوكية";
+                    behTbody.innerHTML += `<tr>
+                        <td>${behaviorCount}</td>
+                        <td>${a.date || '-'}</td>
+                        <td style="white-space: normal; text-align: right; padding: 10px;">${noteText}</td>
+                        <td>${a.teacher || a.source || 'إدارة المدرسة'}</td>
+                    </tr>`;
+                } else {
+                    absenceCount++;
+                    attTbody.innerHTML += `<tr>
+                        <td>${absenceCount}</td>
+                        <td>${a.date || '-'}</td>
+                        <td>${a.status || 'غائب'}</td>
+                    </tr>`;
+                }
             });
-        } else {
+        }
+
+        if (absenceCount === 0) {
             attTbody.innerHTML = `<tr><td colspan="3">سجل الحضور ممتاز، لا توجد غيابات مسجلة</td></tr>`;
+        }
+
+        if (behaviorCount === 0) {
+            behTbody.innerHTML = `<tr><td colspan="4">لا توجد ملاحظات سلوكية مسجلة حالياً</td></tr>`;
         }
 
         document.getElementById('attendanceSummary').innerText = `مجموع أيام الغياب: ${absenceCount} يوم`;
