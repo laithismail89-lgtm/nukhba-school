@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -442,7 +442,7 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- 2. الغيابات (تقتصر على الغياب فقط بناءً على المصفوفة النظيفة) ---
+        // --- 2. الغيابات ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
         let absenceCount = 0;
@@ -474,7 +474,7 @@ async function fetchStudentData(isAuto = false) {
             alertBox.innerHTML = `<div class="alert-box alert-1">⚠️ إنذار أولي (تجاوز الغياب 7 أيام)</div>`;
         }
 
-        // --- 3. الملاحظات السلوكية (تعتمد على مصفوفة student.behavior المستقلة) ---
+        // --- 3. الملاحظات السلوكية (النص يأتي من عمود الفترة الذي يخزن في note) ---
         const behTbody = document.querySelector('#behaviorTable tbody');
         behTbody.innerHTML = "";
         let behaviorCount = 0;
@@ -483,16 +483,16 @@ async function fetchStudentData(isAuto = false) {
             student.behavior.forEach((b) => {
                 behaviorCount++;
                 behTbody.innerHTML += `<tr>
-                    <td>${behaviorCount}</td>
-                    <td>${b.date || '-'}</td>
-                    <td style="white-space: normal; text-align: right; padding: 10px;">${b.note || 'ملاحظة سلوكية'}</td>
-                    <td>${b.teacher || 'إدارة المدرسة'}</td>
+                    <td style="width: 8%; text-align: center;">${behaviorCount}</td>
+                    <td style="width: 22%; text-align: center; direction: ltr; unicode-bidi: embed;">${b.date || '-'}</td>
+                    <td style="width: 45%; text-align: right; padding: 10px; white-space: normal; line-height: 1.6;">${b.note || 'ملاحظة سلوكية'}</td>
+                    <td style="width: 25%; text-align: center;">${b.teacher || 'إدارة المدرسة'}</td>
                 </tr>`;
             });
         }
 
         if (behaviorCount === 0) {
-            behTbody.innerHTML = `<tr><td colspan="4">لا توجد ملاحظات سلوكية مسجلة حالياً</td></tr>`;
+            behTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 15px;">لا توجد ملاحظات سلوكية مسجلة حالياً</td></tr>`;
         }
 
         resultSection.style.display = "block";
