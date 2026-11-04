@@ -255,7 +255,7 @@
     <h2>إعدادية النخبة المهنية الأهلية</h2>
     
     <div class="welcome-box">
-        <strong>أهلاً بك عزيزي ولي الأمر في واجهة ولي الأمر</strong><br>
+        <strong>أهلاً بك عزيزي ولي الأمر المحترم </strong><br>
         هنا يمكنك الاطلاع على آخر درجات ابنك، غياباته، وملاحظاته السلوكية فور توفرها.
     </div>
     
@@ -346,25 +346,42 @@ function decodeBase64UTF8(base64Str) {
     }
 }
 
-// دالة لاستخراج اسم اليوم تلقائياً من التاريخ
-function getDayNameFromDate(dateStr) {
+// دالة ذكية جداً تستخرج اسم اليوم مباشرة استناداً إلى حقل التاريخ المجاور
+function extractDayFromDate(dateStr) {
     if (!dateStr) return "-";
-    let d = new Date(dateStr);
-    if (isNaN(d.getTime())) {
-        // معالجة الصيغ مثل YYYY/MM/DD أو DD/MM/YYYY
-        let parts = dateStr.split(/[\/\-]/);
-        if (parts.length === 3) {
-            if (parts[0].length === 4) {
-                d = new Date(parts[0], parts[1] - 1, parts[2]);
-            } else {
-                d = new Date(parts[2], parts[1] - 1, parts[0]);
-            }
+    
+    // تنظيف النص وتوحيد الفواصل
+    let cleanStr = String(dateStr).trim();
+    let parts = cleanStr.split(/[\/\-\.]/);
+    
+    let year, month, day;
+    if (parts.length === 3) {
+        // إذا كان الترتيب السنة في البداية (YYYY/MM/DD) أو النهاية (DD/MM/YYYY)
+        if (parts[0].length === 4) {
+            year = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10) - 1;
+            day = parseInt(parts[2], 10);
+        } else {
+            day = parseInt(parts[0], 10);
+            month = parseInt(parts[1], 10) - 1;
+            year = parseInt(parts[2], 10);
+            if (year < 100) year += 2000;
+        }
+        
+        let d = new Date(year, month, day);
+        if (!isNaN(d.getTime())) {
+            const daysNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+            return daysNames[d.getDay()];
         }
     }
-    if (!isNaN(d.getTime())) {
-        const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-        return days[d.getDay()];
+    
+    // محاولة احتياطية عامة
+    let generalDate = new Date(dateStr);
+    if (!isNaN(generalDate.getTime())) {
+        const daysNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+        return daysNames[generalDate.getDay()];
     }
+    
     return "-";
 }
 
@@ -464,7 +481,7 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- 2. الغيابات (ت | اليوم | التاريخ) ---
+        // --- 2. الغيابات (ت | اليوم | التاريخ) استخراج اليوم تلقائياً من التاريخ المجاور ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
         let absenceCount = 0;
@@ -473,11 +490,11 @@ async function fetchStudentData(isAuto = false) {
             student.attendance.forEach((a) => {
                 absenceCount++;
                 let attendanceDate = a.date || '-';
-                let calculatedDay = getDayNameFromDate(attendanceDate); // استخراج اليوم تلقائياً من التاريخ
+                let calculatedDay = extractDayFromDate(attendanceDate); // استخراج اليوم برمجياً من التاريخ
                 
                 attTbody.innerHTML += `<tr>
                     <td>${absenceCount}</td>
-                    <td>${calculatedDay}</td>
+                    <td><b>${calculatedDay}</b></td>
                     <td>${attendanceDate}</td>
                 </tr>`;
             });
