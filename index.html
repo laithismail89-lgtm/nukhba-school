@@ -305,8 +305,8 @@
                     <thead>
                         <tr>
                             <th>ت</th>
+                            <th>اليوم</th>
                             <th>التاريخ</th>
-                            <th>الحالة</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -344,6 +344,28 @@ function decodeBase64UTF8(base64Str) {
     } catch (e) {
         return decodeURIComponent(escape(atob(base64Str)));
     }
+}
+
+// دالة لاستخراج اسم اليوم تلقائياً من التاريخ
+function getDayNameFromDate(dateStr) {
+    if (!dateStr) return "-";
+    let d = new Date(dateStr);
+    if (isNaN(d.getTime())) {
+        // معالجة الصيغ مثل YYYY/MM/DD أو DD/MM/YYYY
+        let parts = dateStr.split(/[\/\-]/);
+        if (parts.length === 3) {
+            if (parts[0].length === 4) {
+                d = new Date(parts[0], parts[1] - 1, parts[2]);
+            } else {
+                d = new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+        }
+    }
+    if (!isNaN(d.getTime())) {
+        const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+        return days[d.getDay()];
+    }
+    return "-";
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -442,7 +464,7 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- 2. الغيابات ---
+        // --- 2. الغيابات (ت | اليوم | التاريخ) ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
         let absenceCount = 0;
@@ -450,10 +472,13 @@ async function fetchStudentData(isAuto = false) {
         if (student.attendance && student.attendance.length > 0) {
             student.attendance.forEach((a) => {
                 absenceCount++;
+                let attendanceDate = a.date || '-';
+                let calculatedDay = getDayNameFromDate(attendanceDate); // استخراج اليوم تلقائياً من التاريخ
+                
                 attTbody.innerHTML += `<tr>
                     <td>${absenceCount}</td>
-                    <td>${a.date || '-'}</td>
-                    <td>${a.status || 'غائب'}</td>
+                    <td>${calculatedDay}</td>
+                    <td>${attendanceDate}</td>
                 </tr>`;
             });
         }
@@ -474,7 +499,7 @@ async function fetchStudentData(isAuto = false) {
             alertBox.innerHTML = `<div class="alert-box alert-1">⚠️ إنذار أولي (تجاوز الغياب 7 أيام)</div>`;
         }
 
-        // --- 3. الملاحظات السلوكية (النص يأتي من عمود الفترة الذي يخزن في note) ---
+        // --- 3. الملاحظات السلوكية ---
         const behTbody = document.querySelector('#behaviorTable tbody');
         behTbody.innerHTML = "";
         let behaviorCount = 0;
