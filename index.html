@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -80,10 +80,12 @@
             font-family: 'Cairo', sans-serif;
             box-sizing: border-box;
             text-align: center;
+            transition: all 0.3s;
         }
         input:focus {
             border-color: var(--secondary-color);
             outline: none;
+            box-shadow: 0 0 8px rgba(20, 184, 166, 0.2);
         }
         .btn-group {
             display: flex;
@@ -100,10 +102,11 @@
             font-weight: bold;
             font-family: 'Cairo', sans-serif;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
         button:hover {
             background-color: var(--secondary-color);
+            transform: translateY(-1px);
         }
         .btn-secondary {
             background-color: #64748b;
@@ -114,6 +117,11 @@
         .result-section {
             margin-top: 20px;
             display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .student-info {
             background: #fdf4ff;
@@ -158,6 +166,7 @@
             cursor: pointer;
             border-bottom: 3px solid transparent;
             margin-bottom: -2px;
+            transition: all 0.3s;
         }
         .tab-btn.active {
             color: var(--primary-color);
@@ -345,12 +354,27 @@ function decodeBase64UTF8(base64Str) {
     }
 }
 
+// دالة تفاعلية لتحويل أي أرقام عادية إلى الأرقام العربية الهندية (٠١٢٣٤٥٦٧٨٩) لضمان ظهور الدرجات والتاريخ باللغة العربية
+function toArabicNumerals(input) {
+    if (input === null || input === undefined) return '-';
+    const str = String(input);
+    const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    return str.replace(/\d/g, (digit) => arabicNumbers[digit]);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     const savedCode = localStorage.getItem('nukhba_student_code');
     if (savedCode) {
         document.getElementById('studentCode').value = savedCode;
         fetchStudentData(true);
     }
+
+    // إضافة تفاعلية: الضغط على زر Enter داخل حقل الكود للبحث المباشر
+    document.getElementById('studentCode').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            fetchStudentData(false);
+        }
+    });
 });
 
 function switchTab(tabName) {
@@ -389,6 +413,12 @@ async function fetchStudentData(isAuto = false) {
         return;
     }
 
+    // إظهار حالة تفاعلية أثناء جلب البيانات
+    if (!isAuto) {
+        errorMsg.style.color = "var(--primary-color)";
+        errorMsg.innerText = "جاري البحث واستعلام البيانات...";
+    }
+
     try {
         const response = await fetch('students_data.json?t=' + new Date().getTime());
         if (!response.ok) throw new Error("تعذر الاتصال بقاعدة بيانات المدرسة.");
@@ -396,10 +426,12 @@ async function fetchStudentData(isAuto = false) {
         const data = await response.json();
 
         if (!data[code]) {
+            errorMsg.style.color = "var(--danger-color)";
             if (!isAuto) errorMsg.innerText = "كود الطالب غير صحيح أو غير موجود في النظام.";
             return;
         }
 
+        errorMsg.innerText = "";
         localStorage.setItem('nukhba_student_code', code);
 
         const encryptedPayload = data[code];
@@ -409,11 +441,11 @@ async function fetchStudentData(isAuto = false) {
         let profileHtml = `
             <strong>اسم الطالب:</strong> <span class="wavy-name">${student.profile.name || 'غير محدد'}</span><br>
             <strong>المرحلة:</strong> ${student.profile.stage || ''} | <strong>القسم:</strong> ${student.profile.dept || ''} | <strong>الشعبة:</strong> ${student.profile.group || ''}<br>
-            <strong>الرمز المدرسي:</strong> ${student.profile.schoolCode || ''} | <strong>كود الطالب:</strong> ${code}
+            <strong>الرمز المدرسي:</strong> ${toArabicNumerals(student.profile.schoolCode || '')} | <strong>كود الطالب:</strong> ${code}
         `;
         document.getElementById('studentProfile').innerHTML = profileHtml;
 
-        // --- 1. الدرجات ---
+        // --- 1. الدرجات (مع تحويل الدرجات والأرقام للغة العربية) ---
         const gradesTbody = document.querySelector('#gradesTable tbody');
         gradesTbody.innerHTML = "";
         let hasExcellence = false;
@@ -423,11 +455,14 @@ async function fetchStudentData(isAuto = false) {
                 let scoreVal = parseFloat(g.score) || 0;
                 if (scoreVal >= 90) hasExcellence = true;
                 
+                let arabicScore = toArabicNumerals(g.score || '-');
+                let arabicDate = toArabicNumerals(g.date || '-');
+
                 gradesTbody.innerHTML += `<tr>
                     <td>${g.subject || '-'}</td>
                     <td>${g.period || '-'}</td>
-                    <td><b>${g.score || '-'}</b></td>
-                    <td>${g.date || '-'}</td>
+                    <td><b>${arabicScore}</b></td>
+                    <td>${arabicDate}</td>
                 </tr>`;
             });
         } else {
@@ -441,7 +476,7 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- 2. الغيابات (عرض التسلسل والتاريخ فقط) ---
+        // --- 2. الغيابات (عرض التسلسل والتاريخ بالأرقام العربية) ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
         let absenceCount = 0;
@@ -449,10 +484,11 @@ async function fetchStudentData(isAuto = false) {
         if (student.attendance && student.attendance.length > 0) {
             student.attendance.forEach((a) => {
                 absenceCount++;
-                let attendanceDate = a.date || '-';
+                let attendanceDate = toArabicNumerals(a.date || '-');
+                let arabicIndex = toArabicNumerals(absenceCount);
                 
                 attTbody.innerHTML += `<tr>
-                    <td>${absenceCount}</td>
+                    <td>${arabicIndex}</td>
                     <td style="direction: ltr; unicode-bidi: embed;">${attendanceDate}</td>
                 </tr>`;
             });
@@ -462,7 +498,7 @@ async function fetchStudentData(isAuto = false) {
             attTbody.innerHTML = `<tr><td colspan="2">سجل الحضور ممتاز، لا توجد غيابات مسجلة</td></tr>`;
         }
 
-        document.getElementById('attendanceSummary').innerText = `مجموع أيام الغياب: ${absenceCount} يوم`;
+        document.getElementById('attendanceSummary').innerText = `مجموع أيام الغياب: ${toArabicNumerals(absenceCount)} يوم`;
         
         const alertBox = document.getElementById('attendanceAlert');
         alertBox.innerHTML = "";
@@ -482,9 +518,12 @@ async function fetchStudentData(isAuto = false) {
         if (student.behavior && student.behavior.length > 0) {
             student.behavior.forEach((b) => {
                 behaviorCount++;
+                let arabicBehaviorIndex = toArabicNumerals(behaviorCount);
+                let arabicBehaviorDate = toArabicNumerals(b.date || '-');
+
                 behTbody.innerHTML += `<tr>
-                    <td style="width: 8%; text-align: center;">${behaviorCount}</td>
-                    <td style="width: 22%; text-align: center; direction: ltr; unicode-bidi: embed;">${b.date || '-'}</td>
+                    <td style="width: 8%; text-align: center;">${arabicBehaviorIndex}</td>
+                    <td style="width: 22%; text-align: center; direction: ltr; unicode-bidi: embed;">${arabicBehaviorDate}</td>
                     <td style="width: 45%; text-align: right; padding: 10px; white-space: normal; line-height: 1.6;">${b.note || 'ملاحظة سلوكية'}</td>
                     <td style="width: 25%; text-align: center;">${b.teacher || 'إدارة المدرسة'}</td>
                 </tr>`;
@@ -499,6 +538,7 @@ async function fetchStudentData(isAuto = false) {
 
     } catch (error) {
         console.error(error);
+        errorMsg.style.color = "var(--danger-color)";
         if (!isAuto) errorMsg.innerText = "حدث خطأ أثناء استعلام البيانات. تأكد من اتصالك بالإنترنت.";
     }
 }
