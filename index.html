@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -354,7 +354,7 @@ function decodeBase64UTF8(base64Str) {
     }
 }
 
-// دالة تحويل أي أرقام عادية إلى الأرقام العربية الهندية (٠١٢٣٤٥٦٧٨٩)
+// تحويل الأرقام إلى الأرقام العربية الهندية (٠١٢٣٤٥٦٧٨٩)
 function toArabicNumerals(input) {
     if (input === null || input === undefined) return '-';
     const str = String(input);
@@ -443,35 +443,46 @@ async function fetchStudentData(isAuto = false) {
         `;
         document.getElementById('studentProfile').innerHTML = profileHtml;
 
-        // --- 1. الدرجات (تطبيق شرط صارم: عدم تكرار مادة لنفس الفترة) ---
+        // --- 1. الدرجات (منع تكرار المادة لنفس الفترة الزمنية) ---
         const gradesTbody = document.querySelector('#gradesTable tbody');
         gradesTbody.innerHTML = "";
         let hasExcellence = false;
 
         if (student.grades && student.grades.length > 0) {
-            // تصفية الدرجات لمنع التكرار (أخذ آخر مادة وفترة زمنية أدخلت)
+            // استخدام Map للفلترة ومنع التكرار (الاحتفاظ بأحدث درجة للمادة والفترة)
             const uniqueGradesMap = new Map();
+            
             student.grades.forEach(g => {
-                const key = `${(g.subject || '').trim()}_${(g.period || '').trim()}`;
-                uniqueGradesMap.set(key, g); // يحتفظ بالدرجة الأحدث
-            });
-
-            const uniqueGrades = Array.from(uniqueGradesMap.values());
-
-            uniqueGrades.forEach(g => {
-                let scoreVal = parseFloat(g.score) || 0;
-                if (scoreVal >= 90) hasExcellence = true;
+                const subjectName = (g.subject || '').trim();
+                const periodName = (g.period || '').trim();
                 
-                let arabicScore = toArabicNumerals(g.score || '-');
-                let arabicDate = toArabicNumerals(g.date || '-');
-
-                gradesTbody.innerHTML += `<tr>
-                    <td>${g.subject || '-'}</td>
-                    <td>${g.period || '-'}</td>
-                    <td><b>${arabicScore}</b></td>
-                    <td>${arabicDate}</td>
-                </tr>`;
+                // استبعاد السجلات التي ليست مواد دراسية حقيقية إن وجدت
+                if (subjectName !== 'ملاحظة سلوكية' && subjectName !== 'غياب سابق' && subjectName !== 'غياب') {
+                    const uniqueKey = `${subjectName}_${periodName}`;
+                    uniqueGradesMap.set(uniqueKey, g);
+                }
             });
+
+            const filteredGrades = Array.from(uniqueGradesMap.values());
+
+            if (filteredGrades.length > 0) {
+                filteredGrades.forEach(g => {
+                    let scoreVal = parseFloat(g.score) || 0;
+                    if (scoreVal >= 90) hasExcellence = true;
+                    
+                    let arabicScore = toArabicNumerals(g.score || '-');
+                    let arabicDate = toArabicNumerals(g.date || '-');
+
+                    gradesTbody.innerHTML += `<tr>
+                        <td>${g.subject || '-'}</td>
+                        <td>${g.period || '-'}</td>
+                        <td><b>${arabicScore}</b></td>
+                        <td>${arabicDate}</td>
+                    </tr>`;
+                });
+            } else {
+                gradesTbody.innerHTML = `<tr><td colspan="4">لا توجد درجات مسجلة حالياً</td></tr>`;
+            }
         } else {
             gradesTbody.innerHTML = `<tr><td colspan="4">لا توجد درجات مسجلة حالياً</td></tr>`;
         }
@@ -483,7 +494,7 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- 2. الغيابات (معزولة بالكامل دون تداخل مع الملاحظات السلوكية) ---
+        // --- 2. الغيابات (تدقيق تام وعزل مصفوفة الغياب) ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
         let absenceCount = 0;
@@ -517,7 +528,7 @@ async function fetchStudentData(isAuto = false) {
             alertBox.innerHTML = `<div class="alert-box alert-1">⚠️ إنذار أولي (تجاوز الغياب 7 أيام)</div>`;
         }
 
-        // --- 3. الملاحظات السلوكية ---
+        // --- 3. الملاحظات السلوكية (مُعزولة تماماً) ---
         const behTbody = document.querySelector('#behaviorTable tbody');
         behTbody.innerHTML = "";
         let behaviorCount = 0;
