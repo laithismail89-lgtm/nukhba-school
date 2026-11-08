@@ -354,7 +354,7 @@ function decodeBase64UTF8(base64Str) {
     }
 }
 
-// دالة تفاعلية لتحويل أي أرقام عادية إلى الأرقام العربية الهندية (٠١٢٣٤٥٦٧٨٩) لضمان ظهور الدرجات والتاريخ باللغة العربية
+// دالة تحويل أي أرقام عادية إلى الأرقام العربية الهندية (٠١٢٣٤٥٦٧٨٩)
 function toArabicNumerals(input) {
     if (input === null || input === undefined) return '-';
     const str = String(input);
@@ -369,7 +369,6 @@ window.addEventListener('DOMContentLoaded', () => {
         fetchStudentData(true);
     }
 
-    // إضافة تفاعلية: الضغط على زر Enter داخل حقل الكود للبحث المباشر
     document.getElementById('studentCode').addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
             fetchStudentData(false);
@@ -413,7 +412,6 @@ async function fetchStudentData(isAuto = false) {
         return;
     }
 
-    // إظهار حالة تفاعلية أثناء جلب البيانات
     if (!isAuto) {
         errorMsg.style.color = "var(--primary-color)";
         errorMsg.innerText = "جاري البحث واستعلام البيانات...";
@@ -445,13 +443,22 @@ async function fetchStudentData(isAuto = false) {
         `;
         document.getElementById('studentProfile').innerHTML = profileHtml;
 
-        // --- 1. الدرجات (مع تحويل الدرجات والأرقام للغة العربية) ---
+        // --- 1. الدرجات (تطبيق شرط صارم: عدم تكرار مادة لنفس الفترة) ---
         const gradesTbody = document.querySelector('#gradesTable tbody');
         gradesTbody.innerHTML = "";
         let hasExcellence = false;
 
         if (student.grades && student.grades.length > 0) {
+            // تصفية الدرجات لمنع التكرار (أخذ آخر مادة وفترة زمنية أدخلت)
+            const uniqueGradesMap = new Map();
             student.grades.forEach(g => {
+                const key = `${(g.subject || '').trim()}_${(g.period || '').trim()}`;
+                uniqueGradesMap.set(key, g); // يحتفظ بالدرجة الأحدث
+            });
+
+            const uniqueGrades = Array.from(uniqueGradesMap.values());
+
+            uniqueGrades.forEach(g => {
                 let scoreVal = parseFloat(g.score) || 0;
                 if (scoreVal >= 90) hasExcellence = true;
                 
@@ -476,12 +483,12 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- 2. الغيابات (عرض التسلسل والتاريخ بالأرقام العربية) ---
+        // --- 2. الغيابات (معزولة بالكامل دون تداخل مع الملاحظات السلوكية) ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
         let absenceCount = 0;
 
-        if (student.attendance && student.attendance.length > 0) {
+        if (student.attendance && Array.isArray(student.attendance) && student.attendance.length > 0) {
             student.attendance.forEach((a) => {
                 absenceCount++;
                 let attendanceDate = toArabicNumerals(a.date || '-');
@@ -515,7 +522,7 @@ async function fetchStudentData(isAuto = false) {
         behTbody.innerHTML = "";
         let behaviorCount = 0;
 
-        if (student.behavior && student.behavior.length > 0) {
+        if (student.behavior && Array.isArray(student.behavior) && student.behavior.length > 0) {
             student.behavior.forEach((b) => {
                 behaviorCount++;
                 let arabicBehaviorIndex = toArabicNumerals(behaviorCount);
