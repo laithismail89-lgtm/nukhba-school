@@ -443,21 +443,25 @@ async function fetchStudentData(isAuto = false) {
         `;
         document.getElementById('studentProfile').innerHTML = profileHtml;
 
-        // --- 1. الدرجات (منع تكرار المادة لنفس الفترة الزمنية) ---
+        // --- 1. الدرجات (منع تكرار المادة لنفس الفترة الزمنية تماماً) ---
         const gradesTbody = document.querySelector('#gradesTable tbody');
         gradesTbody.innerHTML = "";
         let hasExcellence = false;
 
         if (student.grades && student.grades.length > 0) {
-            // استخدام Map للفلترة ومنع التكرار (الاحتفاظ بأحدث درجة للمادة والفترة)
             const uniqueGradesMap = new Map();
             
             student.grades.forEach(g => {
                 const subjectName = (g.subject || '').trim();
                 const periodName = (g.period || '').trim();
                 
-                // استبعاد السجلات التي ليست مواد دراسية حقيقية إن وجدت
-                if (subjectName !== 'ملاحظة سلوكية' && subjectName !== 'غياب سابق' && subjectName !== 'غياب') {
+                // استبعاد الملاحظات والسلوكيات والتقييمات والغيابات من تبويب الدرجات
+                if (subjectName !== 'ملاحظة سلوكية' && 
+                    subjectName !== 'التقييم الجماعي' && 
+                    !subjectName.includes('تقييم') && 
+                    subjectName !== 'غياب سابق' && 
+                    subjectName !== 'غياب') {
+                    
                     const uniqueKey = `${subjectName}_${periodName}`;
                     uniqueGradesMap.set(uniqueKey, g);
                 }
@@ -494,7 +498,7 @@ async function fetchStudentData(isAuto = false) {
             excellenceContainer.innerHTML = "";
         }
 
-        // --- 2. الغيابات (تدقيق تام وعزل مصفوفة الغياب) ---
+        // --- 2. الغيابات (تقتصر حصراً على الغيابات الفعلية فقط) ---
         const attTbody = document.querySelector('#attendanceTable tbody');
         attTbody.innerHTML = "";
         let absenceCount = 0;
@@ -528,7 +532,7 @@ async function fetchStudentData(isAuto = false) {
             alertBox.innerHTML = `<div class="alert-box alert-1">⚠️ إنذار أولي (تجاوز الغياب 7 أيام)</div>`;
         }
 
-        // --- 3. الملاحظات السلوكية (مُعزولة تماماً) ---
+        // --- 3. الملاحظات السلوكية (تشمل الملاحظات والتقييم الجماعي وأي تقييمات أخرى) ---
         const behTbody = document.querySelector('#behaviorTable tbody');
         behTbody.innerHTML = "";
         let behaviorCount = 0;
@@ -538,11 +542,14 @@ async function fetchStudentData(isAuto = false) {
                 behaviorCount++;
                 let arabicBehaviorIndex = toArabicNumerals(behaviorCount);
                 let arabicBehaviorDate = toArabicNumerals(b.date || '-');
+                
+                // تحديد نوع التقييم أو الملاحظة لعرضها بشكل أنيق
+                let noteTitle = b.subject ? `<span style="color: var(--primary-color); font-weight: bold;">[${b.subject}]</span><br>` : '';
 
                 behTbody.innerHTML += `<tr>
                     <td style="width: 8%; text-align: center;">${arabicBehaviorIndex}</td>
                     <td style="width: 22%; text-align: center; direction: ltr; unicode-bidi: embed;">${arabicBehaviorDate}</td>
-                    <td style="width: 45%; text-align: right; padding: 10px; white-space: normal; line-height: 1.6;">${b.note || 'ملاحظة سلوكية'}</td>
+                    <td style="width: 45%; text-align: right; padding: 10px; white-space: normal; line-height: 1.6;">${noteTitle}${b.note || 'ملاحظة سلوكية'}</td>
                     <td style="width: 25%; text-align: center;">${b.teacher || 'إدارة المدرسة'}</td>
                 </tr>`;
             });
