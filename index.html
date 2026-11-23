@@ -465,6 +465,12 @@
             background-color: rgba(30, 58, 138, 0.32);
         }
 
+        .low-grade {
+            color: #f43f5e;
+            text-decoration: underline;
+            text-decoration-color: #f43f5e;
+        }
+
         /* تنسيق جدول الغيابات الداكن */
         #attendanceTab th {
             background: linear-gradient(180deg, rgba(234, 88, 12, 0.45), rgba(194, 65, 12, 0.3));
@@ -932,8 +938,12 @@ async function fetchStudentData(isAuto = false) {
 
             if (filteredGrades.length > 0) {
                 filteredGrades.forEach(g => {
-                    let scoreVal = parseFloat(g.score) || 0;
-                    if (scoreVal >= 90) hasExcellence = true;
+                    const rawScore = g.score !== null && g.score !== undefined ? String(g.score).trim() : '';
+                    const normalizedScoreStr = rawScore.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+                    const hasNumericScore = normalizedScoreStr !== '' && !Number.isNaN(parseFloat(normalizedScoreStr));
+                    let scoreVal = hasNumericScore ? parseFloat(normalizedScoreStr) : 0;
+                    if (hasNumericScore && scoreVal >= 90) hasExcellence = true;
+                    const isLowGrade = hasNumericScore && scoreVal <= 49;
                     
                     let arabicScore = toArabicNumerals(g.score || '-');
                     let arabicDate = toArabicNumerals(g.date || '-');
@@ -941,7 +951,7 @@ async function fetchStudentData(isAuto = false) {
                     gradesTbody.innerHTML += `<tr>
                         <td>${g.subject || '-'}</td>
                         <td>${g.period || '-'}</td>
-                        <td><b>${arabicScore}</b></td>
+                        <td><b class="${isLowGrade ? 'low-grade' : ''}">${arabicScore}</b></td>
                         <td>${arabicDate}</td>
                     </tr>`;
                 });
@@ -1032,3 +1042,4 @@ async function fetchStudentData(isAuto = false) {
 
 </body>
 </html>
+```[cite: 2]
